@@ -1,0 +1,40 @@
+name: Build Certple (HTTP version)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clone Certple source
+      uses: actions/checkout@v3
+      with:
+        repository: xiangyuecn/ACME-HTML-Web-Browser-Client
+        path: certple-src
+
+    - name: Patch HTTPS check
+      run: |
+        cd certple-src
+        sed -i 's/location.protocol !== "https:"/false/g' pages/info/errorPage.js
+
+    - name: Install dependencies and build
+      run: |
+        cd certple-src
+        npm install
+        npm run export
+
+    - name: Copy build result into your repo
+      run: |
+        rm -rf dist
+        mkdir dist
+        cp -r certple-src/out/* dist/
+
+    - name: Push to your repo
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "🤖 构建 Certple HTTP 离线包 (自动)"
+        branch: main
+        commit_user_name: github-actions[bot]
+        commit_user_email: github-actions[bot]@users.noreply.github.com
